@@ -2,6 +2,7 @@ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { SFNClient, StartExecutionCommand, SendTaskSuccessCommand } from "@aws-sdk/client-sfn";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import * as jwt from "jsonwebtoken"; // Added for JWT validation
 
 const dynamo = new DynamoDBClient({});
 const ses = new SESClient({});
@@ -9,10 +10,33 @@ const sfn = new SFNClient({});
 const TABLE_NAME = process.env.TABLE_NAME!;
 const SES_EMAIL = process.env.SES_EMAIL!;
 const STATE_MACHINE_ARN = process.env.STATE_MACHINE_ARN!;
+const JWT_SECRET = process.env.JWT_SECRET!; // Added for JWT
 
-// Apply for Leave - Triggers Step Functions
+// Apply for Leave - Triggers Step Functions with JWT Authentication
 export const applyLeave = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
+        // Check for Authorization header
+        const authHeader = event.headers?.Authorization || event.headers?.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return {
+                statusCode: 401,
+                body: JSON.stringify({ message: "invalid Authorization" })
+            };
+        }
+
+        // Extract and verify JWT
+        const token = authHeader.split(" ")[1];
+        try {
+            const decodedToken = jwt.verify(token, JWT_SECRET);
+            console.log("Token validated:", decodedToken);
+        } catch (err) {
+            console.error("JWT verification failed:", err);
+            return {
+                statusCode: 401,
+                body: JSON.stringify({ message: "Invalid or expired token" })
+            };
+        }
+
         if (!TABLE_NAME || !SES_EMAIL || !STATE_MACHINE_ARN) {
             throw new Error("Missing required environment variables");
         }
@@ -25,7 +49,7 @@ export const applyLeave = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         const requestId = `LEAVE-${Date.now()}`;
         console.log("Applying leave for:", body.userEmail, "Request ID:", requestId);
 
-        // Store request in DynamoDB (Removed reason)
+        // Store request in DynamoDB
         await dynamo.send(new PutItemCommand({
             TableName: TABLE_NAME,
             Item: {
@@ -42,7 +66,7 @@ export const applyLeave = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         // Extract API URL from event
         const apiBaseUrl = `https://${event.requestContext.domainName}/${event.requestContext.stage}`;
 
-        // Start Step Functions execution (Removed reason)
+        // Start Step Functions execution
         const input = {
             requestId,
             userEmail: body.userEmail,
@@ -69,6 +93,8 @@ export const applyLeave = async (event: APIGatewayProxyEvent): Promise<APIGatewa
         return { statusCode: 500, body: JSON.stringify({ message: "Internal server error" }) };
     }
 };
+
+// ... (rest of your functions: sendApprovalEmail, processApproval, notifyUser)
 
 // Send Approval Email - Sends email with buttons and task token
 export const sendApprovalEmail = async (event: any): Promise<void> => {
