@@ -37,14 +37,18 @@ export const applyLeave = async (event: APIGatewayProxyEvent): Promise<APIGatewa
             };
         }
 
-        if (!TABLE_NAME || !SES_EMAIL || !STATE_MACHINE_ARN) {
-            throw new Error("Missing required environment variables");
-        }
-
         const body = JSON.parse(event.body || "{}");
         if (!body.userEmail || !body.startDate || !body.endDate || !body.approverEmail || !body.leaveType) {
             return { statusCode: 400, body: JSON.stringify({ message: "Missing required fields" }) };
         }
+
+
+        if (!process.env.TABLE_NAME || !process.env.SES_EMAIL || !process.env.STATE_MACHINE_ARN) {
+            throw new Error("Missing required environment variables");
+        }
+        
+        
+    
 
         const requestId = `LEAVE-${Date.now()}`;
         console.log("Applying leave for:", body.userEmail, "Request ID:", requestId);
