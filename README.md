@@ -76,5 +76,3 @@ Response:
 📧 Email Notification Workflow
 ✔ Employee applies for leave → Manager receives an approval email via AWS SES
 ✔ Manager approves/rejects the request → Employee receives a notification email
-
-
