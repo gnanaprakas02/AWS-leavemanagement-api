@@ -14,7 +14,7 @@ API Gateway: RESTful API
 🛠 Installation & Setup
 1️⃣ Clone the Repository
 
-git clone https://github.com/gnanaprakash/AWS-Leave_Management.git
+git clone https://github.com/gnanaprakas02/Prakash-leavement-api.git
 cd leave-management-system
 
 2️⃣ Install Dependencies
