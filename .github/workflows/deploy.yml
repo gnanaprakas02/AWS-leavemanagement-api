@@ -1,0 +1,29 @@
+name: Deploy Prakash Leave Management API
+
+on:
+  push:
+    branches:
+      - main  # Change to your deployment branch if needed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install AWS SAM CLI
+        run: pip install aws-sam-cli
+
+      - name: Build and Deploy API
+        run: |
+          sam build
+          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
