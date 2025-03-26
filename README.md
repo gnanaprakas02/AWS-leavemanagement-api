@@ -35,6 +35,12 @@ Then deploy:
 sam deploy
 
 
+For Token generate 
+cd hello-world 
+npx tsc generatetoke.ts
+node generatetoken.js
+
+
 📌 API Details
 1️⃣ Apply for Leave
 Endpoint:
