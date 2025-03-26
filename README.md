@@ -41,7 +41,7 @@ SES_EMAIL=your-verified-email@example.com
 
 ### 5️⃣ Deploy to AWS
 ```bash
-sam deploy
+serverless deploy
 ```
 
 ### 6️⃣ Generate a JWT Token
